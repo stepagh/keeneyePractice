@@ -1,20 +1,18 @@
-package dev.keeneye.dto;
+package dev.keeneye.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name="students")
+@Table(name = "students")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-
 public class Student {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String fio;
-    @Column(name="group_of_students")
     private String group;
     private String phoneNumber;
 
