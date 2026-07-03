@@ -5,11 +5,11 @@ import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
-public record StudentPage(
+public record StudentsPage(
         List<Student> students,
         boolean hasMore
 ) {
-    public static StudentPage from(Slice<Student>studentSlice) {
-        return new StudentPage(studentSlice.getContent(), studentSlice.hasNext());
+    public static StudentsPage from(Slice<Student> studentSlice) {
+        return new StudentsPage(studentSlice.getContent(), studentSlice.hasNext());
     }
 }

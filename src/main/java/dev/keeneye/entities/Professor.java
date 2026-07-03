@@ -3,27 +3,24 @@ package dev.keeneye.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
-@Table(name = "students")
-@AllArgsConstructor
-@NoArgsConstructor
+@Table(name = "professors")
 @Getter
 @Setter
-public class Student {
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Professor {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @EqualsAndHashCode.Include
     private Long id;
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private User user;
     private String fio;
     private String phoneNumber;
     private String email;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Group studyGroup;
-
-    public Student(String fio, Group group, String phoneNumber) {
-        this.fio = fio;
-        this.studyGroup = group;
-        this.phoneNumber = phoneNumber;
-    }
+    @ManyToMany(mappedBy = "professors", fetch = FetchType.LAZY)
+    private List<Group> groups;
 }

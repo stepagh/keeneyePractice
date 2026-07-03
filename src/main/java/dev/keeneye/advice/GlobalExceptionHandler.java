@@ -1,7 +1,7 @@
 package dev.keeneye.advice;
 
-import dev.keeneye.exceptions.InvalidEntityException;
-import dev.keeneye.exceptions.ResourceNotFoundException;
+import dev.keeneye.exceptions.*;
+import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -29,9 +29,36 @@ public class GlobalExceptionHandler {
                 e.getMessage()
         );
 
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(problemDetail);
     }
 
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handleUsernameAlreadyExists(UsernameAlreadyExistsException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
 
+    @ExceptionHandler(GroupNotEmptyBeforeDeletionException.class)
+    public ResponseEntity<ProblemDetail> handleGroupNotEmptyBeforeDeletion(GroupNotEmptyBeforeDeletionException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+    @ExceptionHandler(RefreshTokenExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleRefreshTokenExpired(RefreshTokenExpiredException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                e.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
+    }
 }

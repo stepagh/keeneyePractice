@@ -4,4 +4,5 @@ public record StudentResponse(
         Long id,
         String fio,
         String group,
-        String phoneNumber) {}
+        String phoneNumber,
+        String email) {}
