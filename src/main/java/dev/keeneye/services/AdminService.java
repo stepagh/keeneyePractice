@@ -20,7 +20,7 @@ public class AdminService {
         Group group = groupRepository.findByIdFetchProfessors(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
 
-        Professor professor = professorRepository.findById(professorId)
+        Professor professor = professorRepository.findByIdFetchGroups(professorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Professor not found"));
 
         group.addProfessor(professor);
@@ -31,7 +31,7 @@ public class AdminService {
         Group group = groupRepository.findByIdFetchProfessors(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
 
-        Professor professor = professorRepository.findById(professorId)
+        Professor professor = professorRepository.findByIdFetchGroups(professorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Professor not found"));
         group.removeProfessor(professor);
     }

@@ -21,4 +21,12 @@ public interface ProfessorRepository extends JpaRepository<Professor, Long> {
         """)
         Optional<Professor> findByidFetchGroupsProfessors(Long id);
 
+
+        @Query("""
+        SELECT p FROM Professor p 
+        JOIN FETCH p.groups    
+        """
+        )
+        Optional<Professor> findByIdFetchGroups(Long id);
+
 }
