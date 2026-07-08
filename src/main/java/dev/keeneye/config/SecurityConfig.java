@@ -1,4 +1,4 @@
-package dev.keeneye.security.config;
+package dev.keeneye.config;
 
 import dev.keeneye.security.jwt.JwtFilter;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -38,7 +38,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {

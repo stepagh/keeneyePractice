@@ -44,7 +44,7 @@ public class StudentService {
         Group group = groupRepository.findByName(request.groupName())
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
 
-        Student student = studentMapper.toEntity(request, studentId, group);
+        Student student = studentMapper.toEntity(request, studentId, group, user);
         studentRepository.save(student);
         return student;
     }
@@ -61,7 +61,9 @@ public class StudentService {
     public StudentResponse changeStudentById(Long studentId, StudentRequest studentRequest) {
         Group group = groupRepository.findByName(studentRequest.groupName())
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
-        Student student = studentMapper.toEntity(studentRequest, studentId, group);
+        final User user = userRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Student student = studentMapper.toEntity(studentRequest, studentId, group, user);
         studentRepository.save(student);
         return studentMapper.toResponse(student);
     }

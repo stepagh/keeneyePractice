@@ -16,7 +16,6 @@ public class Student {
     private User user;
     private String fio;
     private String phoneNumber;
-    private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Group studyGroup;

@@ -61,4 +61,55 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
     }
+
+    @ExceptionHandler(FileIsEmptyException.class)
+    public ResponseEntity<ProblemDetail> handleFileIsEmpty(FileIsEmptyException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+    @ExceptionHandler(CsvParsingException.class)
+    public ResponseEntity<ProblemDetail> handleFileIsEmpty(CsvParsingException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+    @ExceptionHandler(InvalidFileFormatException.class)
+    public ResponseEntity<ProblemDetail> handleFileIsEmpty(InvalidFileFormatException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ProblemDetail> handleIllegalState(IllegalStateException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                e.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
+    }
+
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<ProblemDetail> handleFileIsEmpty(IncorrectPasswordException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
 }

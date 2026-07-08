@@ -20,7 +20,6 @@ public class Professor {
     private User user;
     private String fio;
     private String phoneNumber;
-    private String email;
     @ManyToMany(mappedBy = "professors", fetch = FetchType.LAZY)
     private List<Group> groups;
 }
