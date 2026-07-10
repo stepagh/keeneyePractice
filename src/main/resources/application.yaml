@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: keeneye
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/testK
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+keeneye:
+  jwt:
+    secret: fnsdf49g4CqHF1nSNuOi0SxjD7OnpROAr8EzT0CTVwT
+    expirationMs: 1800000 # 30 minutes
+  registration-confirm-url: http://localhost:8080/api/v1/auth/register/confirm
+  registration-expiry-hours: 24
+
+logging:
+  level:
+    dev:
+      keeneye: DEBUG
+    org:
+      springframework:
+        mail: DEBUG
+      apache:
+        commons:
+          mail: DEBUG

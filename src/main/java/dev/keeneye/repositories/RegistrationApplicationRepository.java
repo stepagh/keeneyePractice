@@ -13,11 +13,9 @@ public interface RegistrationApplicationRepository extends JpaRepository<Registr
     boolean existsByEmail(String email);
     Optional<RegistrationApplication> findByConfirmationToken(String confirmationToken);
 
-    @Modifying
-    @Query("""
-           UPDATE RegistrationApplication r
-           SET r.status = 'EXPIRED'
-           WHERE r.status = 'PENDING' AND r.expiryDate < :now
-           """)
-    int expireOldApplications(Instant now);
+
+
+    long deleteAllByExpiryDateBefore(Instant now);
+
+    boolean existsByGroupName(String groupName);
 }

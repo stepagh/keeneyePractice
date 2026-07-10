@@ -12,4 +12,10 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "username", source = "fio")
     User toEntity(RegistrationApplication application);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "username", source = "application.fio")
+    @Mapping(target = "password", source = "tempPassword")
+    User toEntity(RegistrationApplication application, String tempPassword);
+
 }

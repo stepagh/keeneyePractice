@@ -111,5 +111,15 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
+    @ExceptionHandler(CsvProcessingException.class)
+    public ResponseEntity<ProblemDetail> handleCsvProcessingException(CsvProcessingException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
+        problemDetail.setProperty("errors", e.getErrors());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
 
 }

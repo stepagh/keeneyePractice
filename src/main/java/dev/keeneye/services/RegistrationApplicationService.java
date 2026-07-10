@@ -4,10 +4,11 @@ import dev.keeneye.dto.CsvProcessingResult;
 import dev.keeneye.dto.UserCsvDto;
 import dev.keeneye.entities.*;
 import dev.keeneye.enums.ApplicationStatus;
-import dev.keeneye.enums.Role;
-import dev.keeneye.exceptions.InvalidFileFormatException;
+import dev.keeneye.exceptions.CsvProcessingException;
 import dev.keeneye.exceptions.ResourceNotFoundException;
+import dev.keeneye.exceptions.UniqueConstraintException;
 import dev.keeneye.mappers.ProfessorMapper;
+import dev.keeneye.mappers.RegistrationApplicationMapper;
 import dev.keeneye.mappers.StudentMapper;
 import dev.keeneye.mappers.UserMapper;
 import dev.keeneye.repositories.*;
@@ -15,11 +16,11 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.*;
@@ -41,7 +42,11 @@ public class RegistrationApplicationService {
     private final GroupRepository groupRepository;
     private final StudentMapper studentMapper;
     private final ProfessorMapper professorMapper;
+    private final RegistrationApplicationMapper registrationApplicationMapper;
+    private final OutboxEmailRepository outboxEmailRepository;
 
+    @Value("${keeneye.registration-expiry-hours}")
+    private int expirationHours;
 
     @Transactional
     public CsvProcessingResult processRegistrationApplications(List<UserCsvDto> dtos) {
@@ -59,35 +64,31 @@ public class RegistrationApplicationService {
                 }
                 continue;
             }
-
-            if (userRepository.existsByEmail(dto.getEmail())) {
-                errors.add("Строка %d (%s): Пользователь с таким Email уже зарегистрирован в системе".formatted(lineNumber, dto.getEmail()));
-                continue;
-            }
-
-            if (applicationRepository.existsByEmail(dto.getEmail())) {
-                errors.add("Строка %d (%s): Заявка на этот Email уже была создана ранее и ожидает подтверждения".formatted(lineNumber, dto.getEmail()));
-                continue;
+            if (!applicationRepository.existsByGroupName(dto.getGroupName())) {
+                errors.add("Строка %d: группы с названием %s не найдено".formatted(lineNumber, dto.getGroupName()));
             }
 
             try {
-                RegistrationApplication application = RegistrationApplication.from(dto, 24);
+                RegistrationApplication application = registrationApplicationMapper.toEntity(dto, expirationHours);
 
-                applicationRepository.save(application);
+                applicationRepository.saveAndFlush(application);
+
                 successCount++;
-                emailService.sendConfirmationEmail(
-                        application.getEmail(),
-                        application.getConfirmationToken()
-                );
 
+                OutboxEmail confirmationTask = new OutboxEmail(application.getEmail(), application.getConfirmationToken());
+                outboxEmailRepository.save(confirmationTask);
 
+            } catch (DataIntegrityViolationException e) {
+                throw new UniqueConstraintException("Unique field dublicate in DB (Registration Application with this email already exists)");
             } catch (IllegalArgumentException e) {
                 errors.add("Строка %d (%s): Неверно указана роль. Ожидается 'ROLE_STUDENT', 'ROLE_PROFESSOR' или 'ROLE_ADMIN'".formatted(lineNumber, dto.getRole()));
             } catch (Exception e) {
                 errors.add("Строка %d: Непредвиденная ошибка при сохранении: %s".formatted(lineNumber, e.getMessage()));
             }
         }
-
+        if (!errors.isEmpty()) {
+            throw new CsvProcessingException("Csv processing failure.Successfully processed lines:" + successCount, errors);
+        }
         return new CsvProcessingResult(successCount, errors);
     }
 
@@ -96,23 +97,22 @@ public class RegistrationApplicationService {
         RegistrationApplication application = applicationRepository.findByConfirmationToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Confirmation token not found"));
 
-        if (application.getStatus() == ApplicationStatus.CONFIRMED) {
-            throw new IllegalStateException("The application was already confirmed earlier");
-        }
-        if (application.getStatus() == ApplicationStatus.EXPIRED || application.getExpiryDate().isBefore(Instant.now())) {
-            application.setStatus(ApplicationStatus.EXPIRED);
+
+        if (application.getExpiryDate().isBefore(Instant.now())) {
+            applicationRepository.delete(application);
             throw new IllegalStateException("Application is expired");
         }
 
-        if (userRepository.existsByEmail(application.getEmail())) {
-            application.setStatus(ApplicationStatus.CONFIRMED);
-            throw new IllegalStateException("User with this email already exists");
+        String tempPassword = UUID.randomUUID().toString();
+        String encodedPassword = passwordEncoder.encode(tempPassword);
+        User newUser = userMapper.toEntity(application, encodedPassword);
+
+        try {
+            userRepository.saveAndFlush(newUser);
+        } catch (DataIntegrityViolationException e) {
+            throw new UniqueConstraintException("Unique field dublicate in DB (User with this username or email already exists)");
         }
 
-        User newUser = userMapper.toEntity(application);
-        String tempPassword = UUID.randomUUID().toString();
-        newUser.setPassword(passwordEncoder.encode(tempPassword));
-        userRepository.saveAndFlush(newUser);
         Group group = groupRepository.findByName(application.getGroupName())
                 .orElseThrow(() -> new ResourceNotFoundException("Group with name: %s not found".formatted(application.getGroupName())));
 
@@ -132,7 +132,7 @@ public class RegistrationApplicationService {
                 adminRepository.save(admin);
             }
         }
-        emailService.sendSuccsesfulRegistrationEmail(newUser.getEmail(),newUser.getUsername(), tempPassword);
-        application.setStatus(ApplicationStatus.CONFIRMED);
+        applicationRepository.delete(application);
+        OutboxEmail successTask = new OutboxEmail(newUser.getEmail(), newUser.getUsername(), tempPassword);
     }
 }

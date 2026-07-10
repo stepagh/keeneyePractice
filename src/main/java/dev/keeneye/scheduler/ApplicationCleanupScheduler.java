@@ -20,8 +20,8 @@ public class ApplicationCleanupScheduler {
     public void cleanupExpiredApplications() {
         log.info("Запуск плановой очистки протухших заявок регистрации");
 
-        int updatedCount = applicationRepository.expireOldApplications(Instant.now());
+        long deletedCount = applicationRepository.deleteAllByExpiryDateBefore(Instant.now());
 
-        log.info("Успешно отозвано протухших заявок: {}", updatedCount);
+        log.info("Успешно удалено протухших заявок: {}", deletedCount);
     }
 }

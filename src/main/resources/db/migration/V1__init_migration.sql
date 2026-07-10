@@ -2,6 +2,8 @@ CREATE SEQUENCE IF NOT EXISTS administrators_seq START WITH 1 INCREMENT BY 50;
 
 CREATE SEQUENCE IF NOT EXISTS groups_seq START WITH 1 INCREMENT BY 50;
 
+CREATE SEQUENCE IF NOT EXISTS outbox_email_seq START WITH 1 INCREMENT BY 50;
+
 CREATE SEQUENCE IF NOT EXISTS professors_seq START WITH 1 INCREMENT BY 50;
 
 CREATE SEQUENCE IF NOT EXISTS refresh_tokens_seq START WITH 1 INCREMENT BY 50;
@@ -31,6 +33,21 @@ CREATE TABLE groups_professors
     professor_id BIGINT NOT NULL
 );
 
+CREATE TABLE outbox_email
+(
+    id                 BIGINT       NOT NULL,
+    type               VARCHAR(255) NOT NULL,
+    email              VARCHAR(255) NOT NULL,
+    confirmation_token VARCHAR(255),
+    username           VARCHAR(255),
+    temp_password      VARCHAR(255),
+    status             VARCHAR(255) NOT NULL,
+    created_at         TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    processed_at       TIMESTAMP WITHOUT TIME ZONE,
+    retry_count        INTEGER      NOT NULL,
+    CONSTRAINT pk_outbox_email PRIMARY KEY (id)
+);
+
 CREATE TABLE professors
 (
     id           BIGINT NOT NULL,
@@ -58,7 +75,6 @@ CREATE TABLE registration_applications
     group_name         VARCHAR(255) NOT NULL,
     confirmation_token VARCHAR(255) NOT NULL,
     expiry_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    status             VARCHAR(255) NOT NULL,
     CONSTRAINT pk_registration_applications PRIMARY KEY (id)
 );
 

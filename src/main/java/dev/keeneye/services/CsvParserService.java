@@ -20,9 +20,9 @@ public class CsvParserService {
 
     public List<UserCsvDto> parseRegistrationCsv(MultipartFile file) {
         String contentType = file.getContentType();
-            if (contentType == null || !isCsvContentType(contentType)) {
-                throw new InvalidFileFormatException("Csv format required. Got " + contentType);
-            }
+        if (contentType == null || !isCsvContentType(contentType)) {
+            throw new InvalidFileFormatException("Csv format required. Got " + contentType);
+        }
 
         String fileName = file.getOriginalFilename();
         if (fileName == null || !fileName.toLowerCase().endsWith(".csv")) {

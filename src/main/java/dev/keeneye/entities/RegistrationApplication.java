@@ -41,27 +41,5 @@ public class RegistrationApplication {
     @Column(nullable = false)
     private Instant expiryDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ApplicationStatus status = ApplicationStatus.PENDING;
 
-    public RegistrationApplication(String email, String fio, Role role, String groupName, String confirmationToken, Instant expiryDate, ApplicationStatus status) {
-        this.email = email;
-        this.fio = fio;
-        this.role = role;
-        this.groupName = groupName;
-        this.confirmationToken = confirmationToken;
-        this.expiryDate = expiryDate;
-        this.status = status;
-    }
-
-
-    public static RegistrationApplication from (UserCsvDto dto, long expirationHours) {
-        Role role = Role.valueOf(dto.getRole().toUpperCase());
-        String confirmationToken = UUID.randomUUID().toString();
-        Instant expiryDate = Instant.now().plusSeconds(expirationHours * 3600);
-
-        return new RegistrationApplication(dto.getEmail(), dto.getFio(), role, dto.getGroupName(), confirmationToken,
-                expiryDate, ApplicationStatus.PENDING);
-    }
 }
