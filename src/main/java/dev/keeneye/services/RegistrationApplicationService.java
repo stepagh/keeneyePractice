@@ -42,13 +42,11 @@ public class RegistrationApplicationService {
     private final GroupRepository groupRepository;
     private final StudentMapper studentMapper;
     private final ProfessorMapper professorMapper;
-    private final RegistrationApplicationMapper registrationApplicationMapper;
-    private final OutboxEmailRepository outboxEmailRepository;
+    private final RowProcessor rowProcessor;
 
     @Value("${keeneye.registration-expiry-hours}")
     private int expirationHours;
 
-    @Transactional
     public CsvProcessingResult processRegistrationApplications(List<UserCsvDto> dtos) {
         List<String> errors = new ArrayList<>();
         int successCount = 0;
@@ -57,39 +55,16 @@ public class RegistrationApplicationService {
             int lineNumber = i + 1;
             UserCsvDto dto = dtos.get(i);
 
-            Set<ConstraintViolation<UserCsvDto>> violations = validator.validate(dto);
-            if (!violations.isEmpty()) {
-                for (ConstraintViolation<UserCsvDto> violation : violations) {
-                    errors.add("Строка %d: %s".formatted(lineNumber, violation.getMessage()));
-                }
-                continue;
-            }
-            if (!applicationRepository.existsByGroupName(dto.getGroupName())) {
-                errors.add("Строка %d: группы с названием %s не найдено".formatted(lineNumber, dto.getGroupName()));
-            }
-
-            try {
-                RegistrationApplication application = registrationApplicationMapper.toEntity(dto, expirationHours);
-
-                applicationRepository.saveAndFlush(application);
-
+            boolean isSaved = rowProcessor.processSingleRow(dto, expirationHours, lineNumber, errors);
+            if (isSaved) {
                 successCount++;
-
-                OutboxEmail confirmationTask = new OutboxEmail(application.getEmail(), application.getConfirmationToken());
-                outboxEmailRepository.save(confirmationTask);
-
-            } catch (DataIntegrityViolationException e) {
-                throw new UniqueConstraintException("Unique field dublicate in DB (Registration Application with this email already exists)");
-            } catch (IllegalArgumentException e) {
-                errors.add("Строка %d (%s): Неверно указана роль. Ожидается 'ROLE_STUDENT', 'ROLE_PROFESSOR' или 'ROLE_ADMIN'".formatted(lineNumber, dto.getRole()));
-            } catch (Exception e) {
-                errors.add("Строка %d: Непредвиденная ошибка при сохранении: %s".formatted(lineNumber, e.getMessage()));
             }
         }
         if (!errors.isEmpty()) {
-            throw new CsvProcessingException("Csv processing failure.Successfully processed lines:" + successCount, errors);
+            throw new CsvProcessingException("Csv processing failure. Errors:", errors);
         }
-        return new CsvProcessingResult(successCount, errors);
+
+        return new CsvProcessingResult(successCount);
     }
 
     @Transactional

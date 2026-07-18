@@ -111,6 +111,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
+
     @ExceptionHandler(CsvProcessingException.class)
     public ResponseEntity<ProblemDetail> handleCsvProcessingException(CsvProcessingException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -122,4 +123,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
 
+
+    @ExceptionHandler(UniqueConstraintException.class)
+    public ResponseEntity<ProblemDetail> handleFileIsEmpty(UniqueConstraintException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
 }

@@ -26,4 +26,6 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
         JOIN FETCH g.professors
         """)
     Optional<Group> findByIdFetch(Long id);
+
+    boolean existsByName(String name);
 }
